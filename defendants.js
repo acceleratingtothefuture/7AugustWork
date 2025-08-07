@@ -1,117 +1,106 @@
 import { cleanDefRow } from './cleanData.js';
 
-// --- CONSTANTS -------------------------------------------------------------
-const folder = './data/';
+// ---------------------------------------------------------------------------
+// CONSTANTS
+// ---------------------------------------------------------------------------
+const DATA_FOLDER = './data/';
 
-const LABELS = [
-  'Hispanic or Latino',
-  'White',
-  'Black or African American',
-  'Asian',
-  'American Indian and Alaska Native',
-  'Native Hawaiian and Other Pacific Islander'
-];
-
-const COLORS = {
-  Declined: '#c2185b', // deep pink
-  Defendants: '#007acc' // same blue as first chart
+const POPULATION = {
+  'Hispanic or Latino': 153027,
+  'White': 16813,
+  'Black or African American': 4362,
+  'Asian': 3049,
+  'American Indian and Alaska Native': 4266,
+  'Native Hawaiian and Other Pacific Islander': 165
 };
 
-// --- HELPERS ---------------------------------------------------------------
-async function getLatestYear () {
-  const thisYear = new Date().getFullYear();
-  for (let y = thisYear; y >= 2015; y--) {
-    const res = await fetch(`${folder}cases_${y}.xlsx`, { method: 'HEAD' });
+const ETHNICITY_COLORS = {
+  'Hispanic or Latino': '#e91e63',
+  'White': '#ff9800',
+  'Black or African American': '#ffe600',
+  'Asian': '#4caf50',
+  'American Indian and Alaska Native': '#00bcd4',
+  'Native Hawaiian and Other Pacific Islander': '#9c27b0'
+};
+
+const DEF_COLOR = '#007acc';
+const POP_COLOR = '#ff9800';
+
+// ---------------------------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------------------------
+async function findLatestYear (prefix) {
+  const current = new Date().getFullYear();
+  for (let y = current; y >= 2015; y--) {
+    const res = await fetch(`${DATA_FOLDER}${prefix}_${y}.xlsx`, { method: 'HEAD' });
     if (res.ok) return y;
   }
-  throw new Error('No cases file found');
+  throw new Error(`No file found for prefix ${prefix}`);
 }
 
-function normalizeEthnicity (raw) {
+function normalEthnicity (raw) {
   const eth = String(raw).toLowerCase();
-  if (eth.includes('white')) return 'White';
-  if (eth.includes('black')) return 'Black or African American';
-  if (eth.includes('asian')) return 'Asian';
-  if (eth.includes('hispanic') || eth.includes('latino')) return 'Hispanic or Latino';
-  if (eth.includes('american indian') || eth.includes('alaska')) return 'American Indian and Alaska Native';
-  if (eth.includes('hawaiian') || eth.includes('pacific')) return 'Native Hawaiian and Other Pacific Islander';
+  if (eth.includes('white'))                     return 'White';
+  if (eth.includes('black'))                     return 'Black or African American';
+  if (eth.includes('asian'))                     return 'Asian';
+  if (eth.includes('hispanic') || eth.includes('latino'))
+                                               return 'Hispanic or Latino';
+  if (eth.includes('american indian') || eth.includes('alaska'))
+                                               return 'American Indian and Alaska Native';
+  if (eth.includes('hawaiian') || eth.includes('pacific'))
+                                               return 'Native Hawaiian and Other Pacific Islander';
   return null;
 }
 
-// --- DATA LOAD -------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// DATA LOAD + CHART
+// ---------------------------------------------------------------------------
 async function loadData () {
-  const year = await getLatestYear();
+  try {
+    const year = await findLatestYear('defendants');
 
-  // Load CASES workbook -----------------------------------------------------
-  const caseBuf = await fetch(`${folder}cases_${year}.xlsx`).then(r => r.arrayBuffer());
-  const caseWb = XLSX.read(caseBuf, { type: 'array' });
-  const caseSheet = caseWb.Sheets[caseWb.SheetNames[0]];
-  const caseRows = XLSX.utils.sheet_to_json(caseSheet, { defval: '' });
+    // workbook
+    const buf    = await fetch(`${DATA_FOLDER}defendants_${year}.xlsx`).then(r => r.arrayBuffer());
+    const wb     = XLSX.read(buf, { type: 'array' });
+    const sheet  = wb.Sheets[wb.SheetNames[0]];
+    const rows   = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-  const rejectedIds = new Set();
-  caseRows.forEach(row => {
-    const status = String(row.Status || '').toLowerCase();
-    const id = row['Case ID'] || row.CaseID || row.CaseId || row.Case; // attempt to be flexible
-    if (!id) return;
-    if (status.includes('reject')) rejectedIds.add(String(id).trim());
-  });
+    const counts = {};
+    let total    = 0;
 
-  // Load DEFENDANTS workbook -----------------------------------------------
-  const defBuf = await fetch(`${folder}defendants_${year}.xlsx`).then(r => r.arrayBuffer());
-  const defWb = XLSX.read(defBuf, { type: 'array' });
-  const defSheet = defWb.Sheets[defWb.SheetNames[0]];
-  const defRows = XLSX.utils.sheet_to_json(defSheet, { defval: '' });
+    rows.forEach(r => {
+      const d = cleanDefRow(r);
+      if (!d || !d.ethnicity) return;
+      const eth = normalEthnicity(d.ethnicity);
+      if (!eth) return;
+      counts[eth] = (counts[eth] || 0) + 1;
+      total++;
+    });
 
-  const totalCounts = {};
-  const declinedCounts = {};
-  let totalDefendants = 0;
-  let totalDeclined = 0;
+    const labels     = Object.keys(POPULATION);
+    const popTotal   = Object.values(POPULATION).reduce((a, b) => a + b, 0);
+    const defData    = labels.map(k => ((counts[k] || 0) / (total || 1)) * 100);
+    const popData    = labels.map(k => (POPULATION[k] / popTotal) * 100);
 
-  defRows.forEach(row => {
-    const d = cleanDefRow(row);
-    if (!d || !d.ethnicity) return;
-
-    const eth = normalizeEthnicity(d.ethnicity);
-    if (!eth) return;
-
-    totalCounts[eth] = (totalCounts[eth] || 0) + 1;
-    totalDefendants++;
-
-    const caseId = (d.caseId || d.caseID || d.CaseID || row['Case ID'] || '').toString().trim();
-    if (rejectedIds.has(caseId)) {
-      declinedCounts[eth] = (declinedCounts[eth] || 0) + 1;
-      totalDeclined++;
-    }
-  });
-
-  // Build data arrays -------------------------------------------------------
-  const declinedData = LABELS.map(k => ((declinedCounts[k] || 0) / (totalDeclined || 1)) * 100);
-  const defendantsData = LABELS.map(k => ((totalCounts[k] || 0) / (totalDefendants || 1)) * 100);
-
-  buildChart(LABELS, declinedData, defendantsData);
+    buildChart(labels, defData, popData);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-// --- CHART -----------------------------------------------------------------
-function buildChart (labels, declinedData, defendantsData) {
-  const ctx = document.getElementById('declinedChart');
-  const hoverRace = document.getElementById('hoverRace2');
-  const hoverDecl = document.getElementById('hoverDecl');
+function buildChart (labels, defData, popData) {
+  const ctx       = document.getElementById('barChart');
+  const hoverRace = document.getElementById('hoverRace');
+  const hoverDef  = document.getElementById('hoverDef');
+  const hoverPop  = document.getElementById('hoverPop');
 
-  const chart = new Chart(ctx, {
+  new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
       datasets: [
-        {
-          label: 'Declined',
-          data: declinedData,
-          backgroundColor: COLORS.Declined
-        },
-        {
-          label: 'All Defendants',
-          data: defendantsData,
-          backgroundColor: COLORS.Defendants
-        }
+        { label: 'Defendants', data: defData, backgroundColor: DEF_COLOR },
+        { label: 'Population', data: popData, backgroundColor: POP_COLOR }
       ]
     },
     options: {
@@ -120,38 +109,25 @@ function buildChart (labels, declinedData, defendantsData) {
       scales: {
         x: {
           beginAtZero: true,
-          ticks: {
-            callback: val => val + '%'
-          },
+          ticks: { callback: v => v + '%' },
           suggestedMax: 100
         }
       },
-      plugins: {
-        legend: {
-          position: 'top'
-        },
-        tooltip: {
-          enabled: false
-        }
-      },
-      onHover: (event, elements, chart) => {
-        const canvas = chart.canvas;
-        const rect = canvas.getBoundingClientRect();
-        const y = event.clientY - rect.top;
-
-        const els = chart.getElementsAtEventForMode(event, 'nearest', { axis: 'y', intersect: false }, false);
-        if (els.length > 0) {
-          const index = els[0].index;
-          hoverRace.textContent = labels[index];
-          hoverDecl.textContent = `${declinedData[index].toFixed(2)}% declined`;
+      plugins: { legend: { position: 'top' }, tooltip: { enabled: false } },
+      onHover: (evt, els, chart) => {
+        const list = chart.getElementsAtEventForMode(evt, 'nearest', { axis: 'y', intersect: false }, false);
+        if (list.length) {
+          const i = list[0].index;
+          hoverRace.textContent = labels[i];
+          hoverDef.textContent  = `${defData[i].toFixed(2)}% of defendants`;
+          hoverPop.textContent  = `${popData[i].toFixed(2)}% of population`;
         } else {
-          hoverRace.textContent = '';
-          hoverDecl.textContent = '';
+          hoverRace.textContent = hoverDef.textContent = hoverPop.textContent = '';
         }
       }
     }
   });
 }
 
-// Kick it off
+// kick‑off
 loadData();
