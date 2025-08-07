@@ -147,6 +147,34 @@ canvas {
   color: #007acc;
 }
 
+/* DECLINED‑TO‑CHARGE CHART STYLES */
+
+/* Re‑use global resets and typography from defendants.css */
+
+/* Container for the second panel */
+#panelCases {
+  padding: 30px 20px;
+  max-width: 1100px;
+  margin: 0 auto 60px auto; /* extra space at bottom */
+  background: #ffffff;
+  border-top: 1px solid #ddd;
+}
+
+/* Override hover colours for the declined‑to‑charge section */
+#hoverRace2 {
+  color: #222;
+}
+
+#hoverDecl {
+  color: #c2185b; /* deep pink for declined metric */
+}
+
+/* Adjust bar colours if needed via JS; canvas inherits 100% width */
+canvas#declinedChart {
+  max-width: 100%;
+}
+
+
 #hoverPop {
   color: #ff9800;
 }
