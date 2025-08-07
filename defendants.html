@@ -22,61 +22,61 @@
 </head>
 <body>
 
-  <header class="nav">
-    <div class="branding">
-      <span class="brand-main">Imperial County District Attorney’s Office</span>
-      <span class="brand-sub">George Marquez, District Attorney</span>
-    </div>
-    <img src="logo.png" alt="DA Logo" class="logo" />
-  </header>
+<header class="nav">
+  <div class="branding">
+    <span class="brand-main">Imperial County District Attorney’s Office</span>
+    <span class="brand-sub">George Marquez, District Attorney</span>
+  </div>
+  <img src="logo.png" alt="DA Logo" class="logo" />
+</header>
 
-  <section class="hero">
-    <h1>Data Dashboard</h1>
-    <p>Data transparency & data-driven decision-making</p>
-  </section>
+<section class="hero">
+  <h1>Data Dashboard</h1>
+  <p>Data transparency & data-driven decision-making</p>
+</section>
 
-  <nav class="main-nav">
-    <a href="home.html">Home</a>
-    <a href="goals.html">Goals</a>
-    <a href="defendants.html" class="active">Defendants</a>
-    <a href="victims.html">Victims</a>
-    <a href="caseProcesses.html">Case Processes</a>
-    <a href="customAnalysis.html">Custom Analysis</a>
-  </nav>
+<nav class="main-nav">
+  <a href="home.html">Home</a>
+  <a href="goals.html">Goals</a>
+  <a href="defendants.html" class="active">Defendants</a>
+  <a href="victims.html">Victims</a>
+  <a href="caseProcesses.html">Case Processes</a>
+  <a href="customAnalysis.html">Custom Analysis</a>
+</nav>
 
-  <section id="panelMain">
-    <div class="dashboard-header">
-      <h2>Defendant Demographics</h2>
-      <p>This chart compares the racial/ethnic breakdown of defendants to Imperial County’s population.</p>
-    </div>
+<section id="panelMain">
+  <div class="dashboard-header">
+    <h2>Defendant Demographics</h2>
+    <p>This chart compares the racial / ethnic breakdown of defendants to Imperial County’s population.</p>
+  </div>
 
-    <div class="hover-box">
-      <div id="hoverRace" class="hover-line"></div>
-      <div id="hoverDef" class="hover-line"></div>
-      <div id="hoverPop" class="hover-line"></div>
-    </div>
+  <div class="hover-box">
+    <div id="hoverRace" class="hover-line"></div>
+    <div id="hoverDef"  class="hover-line"></div>
+    <div id="hoverPop"  class="hover-line"></div>
+  </div>
 
-    <div class="bar-chart-box">
-      <canvas id="barChart"></canvas>
-    </div>
-  </section>
+  <div class="bar-chart-box">
+    <canvas id="barChart"></canvas>
+  </div>
+</section>
 
-  <!-- Declined‑to‑Charge Chart -->
-  <section id="panelCases">
-    <div class="dashboard-header">
-      <h2>Declined-to-Charge by Ethnicity</h2>
-      <p>Percentage of defendants whose cases were declined for charging (Status: Rejected).</p>
-    </div>
+<section id="panelCases">
+  <div class="dashboard-header">
+    <h2>Declined-to-Charge by Ethnicity</h2>
+    <p>Percentage of defendants whose cases were rejected for filing.</p>
+  </div>
 
-    <div class="hover-box">
-      <div id="hoverRace2" class="hover-line"></div>
-      <div id="hoverDecl" class="hover-line"></div>
-    </div>
+  <div class="hover-box">
+    <div id="hoverRace2" class="hover-line"></div>
+    <div id="hoverDecl"  class="hover-line"></div>
+    <div id="hoverAll"   class="hover-line"></div>
+  </div>
 
-    <div class="bar-chart-box">
-      <canvas id="declinedChart"></canvas>
-    </div>
-  </section>
+  <div class="bar-chart-box">
+    <canvas id="declinedChart"></canvas>
+  </div>
+</section>
 
 </body>
 </html>
