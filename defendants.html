@@ -10,6 +10,7 @@
 
   <!-- styles -->
   <link rel="stylesheet" href="defendants.css" />
+  <link rel="stylesheet" href="declined.css" />
 
   <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,6 +18,7 @@
 
   <!-- logic -->
   <script type="module" src="defendants.js" defer></script>
+  <script type="module" src="declined.js" defer></script>
 </head>
 <body>
 
@@ -56,6 +58,23 @@
 
     <div class="bar-chart-box">
       <canvas id="barChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Declined‑to‑Charge Chart -->
+  <section id="panelCases">
+    <div class="dashboard-header">
+      <h2>Declined-to-Charge by Ethnicity</h2>
+      <p>Percentage of defendants whose cases were declined for charging (Status: Rejected).</p>
+    </div>
+
+    <div class="hover-box">
+      <div id="hoverRace2" class="hover-line"></div>
+      <div id="hoverDecl" class="hover-line"></div>
+    </div>
+
+    <div class="bar-chart-box">
+      <canvas id="declinedChart"></canvas>
     </div>
   </section>
 
