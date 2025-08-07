@@ -104,7 +104,7 @@ canvas {
 }
 
 /* MAIN SECTION */
-#panelMain {
+#panelMain, #panelCases {
   padding: 30px 20px;
   max-width: 1100px;
   margin: 0 auto;
@@ -151,19 +151,12 @@ canvas {
   color: #ff9800;
 }
 
-/* DECLINED-TO-CHARGE SECTION */
-#panelCases {
-  padding: 30px 20px;
-  max-width: 1100px;
-  margin: 0 auto 60px auto;
-  background: #ffffff;
-  border-top: 1px solid #ddd;
-}
-
+/* DECLINED CHART COLORS */
 #hoverRace2 { color: #222;    }
 #hoverDecl  { color: #c2185b; }
 #hoverAll   { color: #007acc; }
 
-canvas#declinedChart {
+/* Ensure both charts share same transparent container */
+canvas {
   max-width: 100%;
 }
